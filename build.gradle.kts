@@ -32,6 +32,12 @@ dependencies {
 	// Lombok (자바 스타일 엔티티 작성 시)
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+
+	// QueryDSL (Jakarta 버전)
+	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+	annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+	annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+	annotationProcessor("jakarta.annotation:jakarta.annotation-api")
 }
 
 tasks.withType<Test> {
