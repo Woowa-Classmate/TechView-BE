@@ -18,7 +18,6 @@ public class Question {
     @Column(name = "question_id")
     private Long id;
 
-    @Lob
     @Column(nullable = false, length = 1000)
     private String question;
 

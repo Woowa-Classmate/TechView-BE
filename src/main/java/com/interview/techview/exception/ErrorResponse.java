@@ -3,22 +3,26 @@ package com.interview.techview.exception;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
+@Builder
 public class ErrorResponse {
 
-    private final int status;
-    private final String message;
-
-    @Builder
-    public ErrorResponse(int status, String message) {
-        this.status = status;
-        this.message = message;
-    }
+    private String code;
+    private Object message;
 
     public static ErrorResponse of(ErrorCode errorCode) {
         return ErrorResponse.builder()
-                .status(errorCode.getStatus().value())
+                .code(errorCode.name())
                 .message(errorCode.getMessage())
+                .build();
+    }
+
+    public static ErrorResponse of(ErrorCode errorCode, List<String> messages) {
+        return ErrorResponse.builder()
+                .code(errorCode.name())
+                .message(messages)
                 .build();
     }
 }
