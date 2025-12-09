@@ -26,7 +26,7 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Difficulty difficulty;
+    private Difficulty difficulty = Difficulty.MEDIUM;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -34,7 +34,6 @@ public class Question {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        if (difficulty == null) difficulty = Difficulty.MEDIUM;
     }
 
     // update

@@ -29,7 +29,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Role role;
+    private Role role = Role.USER;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -37,8 +37,5 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (role == null) {
-            role = Role.USER;
-        }
     }
 }

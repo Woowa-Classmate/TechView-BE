@@ -10,7 +10,8 @@ import java.util.List;
 public class ErrorResponse {
 
     private String code;
-    private Object message;
+    private String message;
+    private List<String> errors;
 
     public static ErrorResponse of(ErrorCode errorCode) {
         return ErrorResponse.builder()
@@ -19,10 +20,11 @@ public class ErrorResponse {
                 .build();
     }
 
-    public static ErrorResponse of(ErrorCode errorCode, List<String> messages) {
+    public static ErrorResponse of(ErrorCode errorCode, List<String> errors) {
         return ErrorResponse.builder()
                 .code(errorCode.name())
-                .message(messages)
+                .message(errorCode.getMessage())  // 대표 메시지
+                .errors(errors)  // 실제 필드 검증 등 상세 오류
                 .build();
     }
 }
