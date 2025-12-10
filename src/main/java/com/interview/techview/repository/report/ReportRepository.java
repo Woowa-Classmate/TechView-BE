@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
-    List<Report> findByUser(User user);
+    List<Report> findByUserId(Long userId);
 }
