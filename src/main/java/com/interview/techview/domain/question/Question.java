@@ -24,6 +24,7 @@ public class Question {
     @Lob
     private String answer;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Difficulty difficulty = Difficulty.MEDIUM;
