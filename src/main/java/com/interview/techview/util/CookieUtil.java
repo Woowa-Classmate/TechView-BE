@@ -28,7 +28,7 @@ public class CookieUtil {
         return ResponseCookie.from(REFRESH_TOKEN_NAME, "")
                 .httpOnly(true)
                 .secure(true)
-                .path("/auth")
+                .path("/api/auth")
                 .sameSite("Strict")
                 .maxAge(0)  // 만료
                 .build();
