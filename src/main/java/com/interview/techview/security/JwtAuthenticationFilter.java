@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -62,10 +63,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    // refresh 엔드포인트 제외
+    // JWT 검증 제외할 엔드포인트 목록
+    private static final AntPathMatcher matcher = new AntPathMatcher();
+    private static final String[] EXCLUDED = {
+            "/api/auth/signup",
+            "/api/auth/login",
+            "/api/auth/refresh",
+            "/error"
+    };
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.equals("/auth/refresh");
+        for (String p : EXCLUDED) {
+            if (matcher.match(p, path)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
