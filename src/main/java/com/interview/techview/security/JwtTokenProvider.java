@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Component
@@ -79,5 +80,10 @@ public class JwtTokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    // RefreshToken 만료일 설정
+    public LocalDateTime getRefreshExpiryDate() {
+        return LocalDateTime.now().plusSeconds(refreshExpiration / 1000);
     }
 }

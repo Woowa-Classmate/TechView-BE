@@ -1,6 +1,7 @@
 package com.interview.techview.repository.auth;
 
 import com.interview.techview.domain.auth.RefreshToken;
+import com.interview.techview.domain.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
