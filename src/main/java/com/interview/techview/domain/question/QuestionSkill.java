@@ -32,4 +32,9 @@ public class QuestionSkill {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "skill_id")
     private Skill skill;
+
+    public QuestionSkill(Question question, Skill skill) {
+        this.question = question;
+        this.skill = skill;
+    }
 }

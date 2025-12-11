@@ -3,6 +3,7 @@ package com.interview.techview.service.auth;
 import com.interview.techview.domain.auth.RefreshToken;
 import com.interview.techview.domain.user.Role;
 import com.interview.techview.domain.user.User;
+import com.interview.techview.dto.auth.ResetPasswordRequest;
 import com.interview.techview.dto.auth.SignUpRequest;
 import com.interview.techview.dto.auth.LoginRequest;
 import com.interview.techview.dto.auth.TokenResponse;
@@ -11,7 +12,8 @@ import com.interview.techview.exception.ErrorCode;
 import com.interview.techview.repository.auth.RefreshTokenRepository;
 import com.interview.techview.repository.user.UserRepository;
 import com.interview.techview.security.JwtTokenProvider;
-import jakarta.transaction.Transactional;
+import com.interview.techview.util.GenerateRandomPassword;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -71,7 +73,10 @@ public class AuthService {
 
         // 5) 기존 refreshToken 삭제 후 새로 저장 (RTR)
         refreshTokenRepository.findByUserId(user.getId())
-                .ifPresent(refreshTokenRepository::delete);
+                .ifPresent(token -> {
+                    refreshTokenRepository.delete(token);
+                    refreshTokenRepository.flush();
+                });
 
         LocalDateTime expiry = jwtTokenProvider.getRefreshExpiryDate();
 
@@ -85,6 +90,35 @@ public class AuthService {
 
         // 6) 응답 반환
         return new TokenResponse(accessToken, refreshToken);
+    }
+
+    // 임시 비밀번호 발급
+    public String generateTempPassword(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String tempPassword = GenerateRandomPassword.generate(10);
+
+        user.updatePassword(passwordEncoder.encode(tempPassword));
+
+        // TODO: 이메일 전송 로직 (MailService)
+        
+        // TODO: 이메일 전송 로직 구현 시 반환 제거
+        return tempPassword;
+    }
+
+    // 비밀번호 변경
+    public void resetPassword(Long userId, ResetPasswordRequest request) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
     // 토큰 재발급

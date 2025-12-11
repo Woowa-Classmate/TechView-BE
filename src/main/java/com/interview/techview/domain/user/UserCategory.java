@@ -32,4 +32,9 @@ public class UserCategory {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    public UserCategory(User user, Category category) {
+        this.user = user;
+        this.category = category;
+    }
 }

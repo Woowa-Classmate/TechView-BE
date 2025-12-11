@@ -4,7 +4,15 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "skills")
+@Table(
+        name = "skills",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_skill_name",
+                        columnNames = {"name"}
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -18,4 +26,9 @@ public class Skill {
 
     @Column(name = "skill_name", nullable = false, length = 255)
     private String name;
+
+    // update
+    public void updateName(String name) {
+        this.name = name;
+    }
 }
