@@ -50,11 +50,17 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
+val generated = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
+
+tasks.withType<JavaCompile> {
+	options.generatedSourceOutputDirectory.set(generated.get().asFile)
+}
+
 sourceSets {
 	main {
 		java {
 			// QueryDSL이 생성한 Q클래스를 IDE가 소스 코드로 인식하도록 추가
-			srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
+			srcDir(generated)
 		}
 	}
 }
