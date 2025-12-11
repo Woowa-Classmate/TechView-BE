@@ -22,4 +22,13 @@ public class Category {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private CategoryLevel level;
+
+    // update
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateLevel(CategoryLevel level) {
+        this.level = level;
+    }
 }

@@ -24,6 +24,7 @@ public class Report {
     private User user;
 
     // ReportQuestion 들이 연관됨
+    @Builder.Default
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<ReportQuestion> reportQuestions = new java.util.ArrayList<>();
 

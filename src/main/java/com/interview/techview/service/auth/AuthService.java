@@ -13,7 +13,7 @@ import com.interview.techview.repository.auth.RefreshTokenRepository;
 import com.interview.techview.repository.user.UserRepository;
 import com.interview.techview.security.JwtTokenProvider;
 import com.interview.techview.util.GenerateRandomPassword;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
