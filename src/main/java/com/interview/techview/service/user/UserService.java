@@ -33,7 +33,6 @@ public class UserService {
     public UserProfileResponse getMyInfo(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
         return UserProfileResponse.from(user);
     }
 
@@ -70,7 +69,7 @@ public class UserService {
 
     // 내 분야 조회
     public List<String> getCategories(Long userId) {
-        return userCategoryRepository.findByUserId(userId)
+        return userCategoryRepository.findByUserIdWithCategory(userId)
                 .stream()
                 .map(uc -> uc.getCategory().getName())
                 .toList();
@@ -98,7 +97,7 @@ public class UserService {
 
     // 내 기술스택 조회
     public List<String> getSkills(Long userId) {
-        return userSkillRepository.findByUserId(userId)
+        return userSkillRepository.findByUserIdWithSkill(userId)
                 .stream()
                 .map(us -> us.getSkill().getName())
                 .toList();

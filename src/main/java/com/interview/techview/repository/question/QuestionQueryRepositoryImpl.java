@@ -22,7 +22,7 @@ public class QuestionQueryRepositoryImpl implements QuestionQueryRepository {
                 .selectDistinct(q)
                 .from(q)
                 .leftJoin(q.categories, qc).fetchJoin()
-                .leftJoin(q.skills, qs).fetchJoin()
+                .leftJoin(q.skills, qs)
                 .where(
                         categoryId != null ? qc.category.id.eq(categoryId) : null,
                         skillId != null ? qs.skill.id.eq(skillId) : null,
@@ -42,7 +42,7 @@ public class QuestionQueryRepositoryImpl implements QuestionQueryRepository {
         return query
                 .selectDistinct(q)
                 .from(q)
-                .leftJoin(q.categories, qc)
+                .leftJoin(q.categories, qc).fetchJoin()
                 .leftJoin(q.skills, qs)
                 .where(
                         q.difficulty.eq(difficulty),

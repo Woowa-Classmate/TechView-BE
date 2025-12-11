@@ -4,6 +4,7 @@ import com.interview.techview.domain.category.Category;
 import com.interview.techview.domain.skill.Skill;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class Question {
     private List<QuestionCategory> categories = new ArrayList<>();
 
     @Builder.Default
+    @BatchSize(size = 50)
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionSkill> skills = new ArrayList<>();
 

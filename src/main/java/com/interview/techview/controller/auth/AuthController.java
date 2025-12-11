@@ -56,7 +56,7 @@ public class AuthController {
     @PatchMapping("/resetPw")
     public ResponseEntity<ApiResponse> resetPassword(
             @AuthenticationPrincipal CustomUserDetails user,
-            @RequestBody ResetPasswordRequest request
+            @Valid @RequestBody ResetPasswordRequest request
     ) {
         authService.resetPassword(user.getId(), request);
         return ResponseEntity.ok(ApiResponse.ok("비밀번호가 변경되었습니다."));

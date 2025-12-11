@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -52,7 +54,7 @@ public class UserController {
 
     // 내 분야 조회
     @GetMapping("/me/categories")
-    public ResponseEntity<?> getCategories(
+    public ResponseEntity<List<String>> getCategories(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         return ResponseEntity.ok(
@@ -72,7 +74,7 @@ public class UserController {
 
     // 내 기술스택 조회
     @GetMapping("/me/skills")
-    public ResponseEntity<?> getSkills(
+    public ResponseEntity<List<String>> getSkills(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         return ResponseEntity.ok(
