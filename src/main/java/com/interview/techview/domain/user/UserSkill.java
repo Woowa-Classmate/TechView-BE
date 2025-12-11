@@ -33,7 +33,6 @@ public class UserSkill {
     @JoinColumn(name = "skill_id")
     private Skill skill;
 
-    @Builder
     public UserSkill(User user, Skill skill) {
         this.user = user;
         this.skill = skill;

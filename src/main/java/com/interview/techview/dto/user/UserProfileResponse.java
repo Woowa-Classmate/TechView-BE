@@ -19,7 +19,16 @@ public class UserProfileResponse {
     private List<String> categories;
     private List<String> skills;
 
-    public static UserProfileResponse from(User user, List<String> categories, List<String> skills) {
+    public static UserProfileResponse from(User user) {
+
+        List<String> categories = user.getCategories().stream()
+                .map(uc -> uc.getCategory().getName())
+                .toList();
+
+        List<String> skills = user.getSkills().stream()
+                .map(us -> us.getSkill().getName())
+                .toList();
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())

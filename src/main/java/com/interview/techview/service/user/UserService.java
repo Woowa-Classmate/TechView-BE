@@ -3,8 +3,6 @@ package com.interview.techview.service.user;
 import com.interview.techview.domain.category.Category;
 import com.interview.techview.domain.skill.Skill;
 import com.interview.techview.domain.user.User;
-import com.interview.techview.domain.user.UserCategory;
-import com.interview.techview.domain.user.UserSkill;
 import com.interview.techview.dto.user.UpdateUserProfileRequest;
 import com.interview.techview.dto.user.UserProfileResponse;
 import com.interview.techview.exception.CustomException;
@@ -36,24 +34,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        List<String> categories = userCategoryRepository.findByUserId(userId)
-                .stream()
-                .map(uc -> uc.getCategory().getName())
-                .toList();
-
-        List<String> skills = userSkillRepository.findByUserId(userId)
-                .stream()
-                .map(us -> us.getSkill().getName())
-                .toList();
-
-        return UserProfileResponse.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .createdAt(user.getCreatedAt())
-                .categories(categories)
-                .skills(skills)
-                .build();
+        return UserProfileResponse.from(user);
     }
 
     // 내 정보 변경
@@ -84,9 +65,7 @@ public class UserService {
         }
 
         // 새 매핑 생성
-        categories.forEach(category ->
-                userCategoryRepository.save(new UserCategory(user, category))
-        );
+        user.setCategories(categories);
     }
 
     // 내 분야 조회
@@ -114,9 +93,7 @@ public class UserService {
             throw new CustomException(ErrorCode.SKILL_NOT_FOUND);
         }
 
-        skills.forEach(skill ->
-                userSkillRepository.save(new UserSkill(user, skill))
-        );
+        user.setSkills(skills);
     }
 
     // 내 기술스택 조회

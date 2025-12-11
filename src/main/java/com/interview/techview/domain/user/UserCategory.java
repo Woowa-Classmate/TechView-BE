@@ -33,7 +33,6 @@ public class UserCategory {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Builder
     public UserCategory(User user, Category category) {
         this.user = user;
         this.category = category;
