@@ -1,6 +1,7 @@
 package com.interview.techview.controller.auth;
 
 import com.interview.techview.dto.auth.LoginRequest;
+import com.interview.techview.dto.auth.ResetPasswordRequest;
 import com.interview.techview.dto.auth.SignUpRequest;
 import com.interview.techview.dto.auth.TokenResponse;
 import com.interview.techview.dto.common.ApiResponse;
@@ -41,6 +42,24 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new TokenResponse(tokens.getAccessToken(), null));
+    }
+
+    // 임시 비밀번호 발급
+    @PatchMapping("/genPw")
+    public ResponseEntity<ApiResponse> generateTempPassword(@AuthenticationPrincipal CustomUserDetails user) {
+        String email = user.getUser().getEmail();
+        String tempPw = authService.generateTempPassword(email);
+        return ResponseEntity.ok(ApiResponse.ok("임시 비밀번호가 발급되었습니다.", tempPw));
+    }
+
+    // 비밀번호 변경
+    @PatchMapping("/resetPw")
+    public ResponseEntity<ApiResponse> resetPassword(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody ResetPasswordRequest request
+    ) {
+        authService.resetPassword(user.getId(), request);
+        return ResponseEntity.ok(ApiResponse.ok("비밀번호가 변경되었습니다."));
     }
 
     // 토큰 재발급

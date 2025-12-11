@@ -39,4 +39,9 @@ public class User {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    // update
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }
