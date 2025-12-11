@@ -1,9 +1,12 @@
 package com.interview.techview.domain.user;
 
+import com.interview.techview.domain.category.Category;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -43,5 +46,9 @@ public class User {
     // update
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
     }
 }

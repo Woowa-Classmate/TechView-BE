@@ -32,4 +32,10 @@ public class UserSkill {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "skill_id")
     private Skill skill;
+
+    @Builder
+    public UserSkill(User user, Skill skill) {
+        this.user = user;
+        this.skill = skill;
+    }
 }
