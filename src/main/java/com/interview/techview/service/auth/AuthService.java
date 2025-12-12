@@ -13,6 +13,7 @@ import com.interview.techview.repository.auth.RefreshTokenRepository;
 import com.interview.techview.repository.user.UserRepository;
 import com.interview.techview.security.JwtTokenProvider;
 import com.interview.techview.util.GenerateRandomPassword;
+import io.jsonwebtoken.JwtException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -125,7 +126,9 @@ public class AuthService {
     public TokenResponse refresh(String refreshToken) {
 
         // 1) 토큰이 유효한지 체크
-        if (!jwtTokenProvider.validateToken(refreshToken)) {
+        try {
+            jwtTokenProvider.validateRefreshToken(refreshToken);
+        } catch (JwtException | IllegalArgumentException e) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
