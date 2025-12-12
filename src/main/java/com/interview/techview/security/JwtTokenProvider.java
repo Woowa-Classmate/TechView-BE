@@ -31,21 +31,22 @@ public class JwtTokenProvider {
 
     // AccessToken 생성
     public String createAccessToken(Long userId, String role) {
-        return buildToken(userId, role, accessExpiration);
+        return buildToken(userId, role, accessExpiration, "access");
     }
 
     // RefreshToken 생성 (role 필요 없음)
     public String createRefreshToken(Long userId) {
-        return buildToken(userId, null, refreshExpiration);
+        return buildToken(userId, null, refreshExpiration, "refresh");
     }
 
     // 내부 공통 빌더
-    private String buildToken(Long userId, String role, long expire) {
+    private String buildToken(Long userId, String role, long expire, String type) {
         Date now = new Date();
         JwtBuilder builder = Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + expire));
+                .setExpiration(new Date(now.getTime() + expire))
+                .claim("type", type);
 
         if (role != null)
             builder.claim("role", role);
@@ -55,7 +56,14 @@ public class JwtTokenProvider {
 
     // userId 추출
     public Long getUserId(String token) {
-        return Long.valueOf(parseClaims(token).getSubject());
+        Claims claims = parseClaims(token);
+
+        String subject = claims.getSubject();
+        if (subject == null) {
+            throw new JwtException("Invalid token");
+        }
+
+        return Long.valueOf(subject);
     }
 
     // role 추출
@@ -64,14 +72,24 @@ public class JwtTokenProvider {
     }
 
     // 유효성 검증
-    public boolean validateToken(String token) {
-        try {
-            parseClaims(token);
-            return true;
-        } catch (Exception e) {
-            return false;
+    public void validateAccessToken(String token) {
+        Claims claims = parseClaims(token);
+
+        String role = claims.get("role", String.class);
+        if (role == null) {
+            throw new JwtException("Access token missing role");
         }
     }
+
+    public void validateRefreshToken(String token) {
+        Claims claims = parseClaims(token);
+
+        String type = claims.get("type", String.class);
+        if (!"refresh".equals(type)) {
+            throw new JwtException("Not a refresh token");
+        }
+    }
+
 
     // Claims 파싱
     private Claims parseClaims(String token) {

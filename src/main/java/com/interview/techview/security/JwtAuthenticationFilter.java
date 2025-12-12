@@ -1,5 +1,6 @@
 package com.interview.techview.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,21 +35,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            Long userId = jwtTokenProvider.getUserId(token);
+        if (token != null) {
+            try {
+                jwtTokenProvider.validateAccessToken(token);
 
-            UserDetails userDetails = userDetailsService.loadUserById(userId);
+                Long userId = jwtTokenProvider.getUserId(token);
 
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
+                UserDetails userDetails = userDetailsService.loadUserById(userId);
 
-            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
 
-            SecurityContextHolder.getContext().setAuthentication(auth);
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            } catch (JwtException | IllegalArgumentException e) {
+                // 중요: 검증 실패 시 인증 정보 제거
+                SecurityContextHolder.clearContext();
+                // 그냥 통과 → 비인증 사용자로 처리
+            }
         }
 
         filterChain.doFilter(request, response);

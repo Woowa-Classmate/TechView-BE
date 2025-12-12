@@ -95,10 +95,7 @@ public class AuthController {
     }
 
     // 토큰 재발급
-    @Operation(
-            summary = "Access Token 재발급",
-            description = "Refresh Token 쿠키를 이용해 Access Token을 재발급합니다."
-    )
+    @Operation(hidden = true)
     @PublicApi
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(@CookieValue("refreshToken") String refreshToken) {
