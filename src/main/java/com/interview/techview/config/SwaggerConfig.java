@@ -18,7 +18,7 @@ public class SwaggerConfig {
                         .title("TechView API")
                         .description("TechView 면접 질문 & 평가 플랫폼 API 문서")
                         .version("v1.0.0"))
-                .addSecurityItem(new SecurityRequirement().addList("Access Token"))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(
                         new Components().addSecuritySchemes(
                                 "bearerAuth",
