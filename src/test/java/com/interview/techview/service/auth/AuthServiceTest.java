@@ -49,14 +49,20 @@ public class AuthServiceTest {
 
     @Nested
     class SignUpTest {
-        @Test
-        @DisplayName("회원가입 성공 - 정상 요청이면 유저를 저장한다")
-        void signup_success_when_valid_request() {
-            // given
+        // 헬퍼 메서드
+        private SignUpRequest signUpRequest() {
             SignUpRequest request = new SignUpRequest();
             ReflectionTestUtils.setField(request, "email", "test@test.com");
             ReflectionTestUtils.setField(request, "name", "테스트");
             ReflectionTestUtils.setField(request, "password", "Password1!");
+            return request;
+        }
+
+        @Test
+        @DisplayName("회원가입 성공 - 정상 요청이면 유저를 저장한다")
+        void signup_success_when_valid_request() {
+            // given
+            SignUpRequest request = signUpRequest();
 
             given(userRepository.findByEmail("test@test.com"))
                     .willReturn(Optional.empty());
@@ -68,17 +74,15 @@ public class AuthServiceTest {
             authService.signUp(request);
 
             // then
-            verify(userRepository).save(any());
+            // verify : “행동(사이드 이펙트)”을 검증할 때 사용 (결과값/예외 => assert 사용)
+            verify(userRepository).save(any());  // save가 호출되었는지 검증 (기본적으로 1회 호출을 기대)
         }
 
         @Test
         @DisplayName("회원가입 실패 - 이미 존재하는 이메일이면 예외가 발생한다")
         void signup_fail_when_email_already_exists() {
             // given
-            SignUpRequest request = new SignUpRequest();
-            ReflectionTestUtils.setField(request, "email", "test@test.com");
-            ReflectionTestUtils.setField(request, "name", "테스트");
-            ReflectionTestUtils.setField(request, "password", "Password1!");
+            SignUpRequest request = signUpRequest();
 
             given(userRepository.findByEmail("test@test.com"))
                     .willReturn(Optional.of(mock(User.class)));
@@ -88,19 +92,25 @@ public class AuthServiceTest {
                     .isInstanceOf(CustomException.class)
                     .hasMessageContaining("이미 사용 중인 이메일");
 
-            verify(userRepository, never()).save(any());
+            verify(userRepository, never()).save(any());  // save가 호출되지 않았는지 검증
         }
     }
 
     @Nested
     class LoginTest {
+        // 헬퍼 메서드
+        private LoginRequest loginRequest(String email, String password) {
+            LoginRequest request = new LoginRequest();
+            ReflectionTestUtils.setField(request, "email", email);
+            ReflectionTestUtils.setField(request, "password", password);
+            return request;
+        }
+
         @Test
         @DisplayName("로그인 성공 - 올바른 이메일과 비밀번호면 토큰을 반환한다")
         void login_success_when_valid_credentials() {
             // given
-            LoginRequest request = new LoginRequest();
-            ReflectionTestUtils.setField(request, "email", "test@test.com");
-            ReflectionTestUtils.setField(request, "password", "password");
+            LoginRequest request = loginRequest("test@test.com", "password");
 
             User user = User.builder()
                     .id(1L)
@@ -125,6 +135,7 @@ public class AuthServiceTest {
             TokenResponse response = authService.login(request);
 
             // then
+            // assertThat~ : 결과/예외 등 반환값이 있을 때 사용 (That : 결과 상태 검증 | ThatThrownBy : 예외 발생 여부 검증)
             assertThat(response.getAccessToken()).isEqualTo("access-token");
         }
 
@@ -132,9 +143,7 @@ public class AuthServiceTest {
         @DisplayName("로그인 실패 - 존재하지 않는 이메일이면 예외가 발생한다")
         void login_fail_when_email_not_found() {
             // given
-            LoginRequest request = new LoginRequest();
-            ReflectionTestUtils.setField(request, "email", "no@test.com");
-            ReflectionTestUtils.setField(request, "password", "password");
+            LoginRequest request = loginRequest("no@test.com", "password");
 
             given(userRepository.findByEmail("no@test.com"))
                     .willReturn(Optional.empty());
@@ -149,9 +158,7 @@ public class AuthServiceTest {
         @DisplayName("로그인 실패 - 비밀번호가 틀리면 예외가 발생한다")
         void login_fail_when_password_invalid() {
             // given
-            LoginRequest request = new LoginRequest();
-            ReflectionTestUtils.setField(request, "email", "test@test.com");
-            ReflectionTestUtils.setField(request, "password", "wrong");
+            LoginRequest request = loginRequest("test@test.com", "wrong");
 
             User user = User.builder()
                     .email("test@test.com")
@@ -173,6 +180,14 @@ public class AuthServiceTest {
 
     @Nested
     class ResetPasswordTest {
+        // 헬퍼 메서드
+        private User resetPasswordUser(Long id) {
+            return User.builder()
+                    .id(id)
+                    .password("encoded-old")  // passwordEncoder로 해시화된 비밀번호가 들어감
+                    .build();
+        }
+
         @Test
         @DisplayName("비밀번호 변경 성공 - 현재 비밀번호가 일치하면 변경된다")
         void reset_password_success_when_current_password_matches() {
@@ -183,10 +198,7 @@ public class AuthServiceTest {
             ReflectionTestUtils.setField(request, "currentPassword", "old");
             ReflectionTestUtils.setField(request, "newPassword", "new");
 
-            User user = User.builder()
-                    .id(userId)
-                    .password("encoded-old")
-                    .build();
+            User user = resetPasswordUser(userId);
 
             given(userRepository.findById(userId))
                     .willReturn(Optional.of(user));
@@ -228,10 +240,7 @@ public class AuthServiceTest {
             ResetPasswordRequest request = new ResetPasswordRequest();
             ReflectionTestUtils.setField(request, "currentPassword", "wrong");
 
-            User user = User.builder()
-                    .id(userId)
-                    .password("encoded-old")
-                    .build();
+            User user = resetPasswordUser(userId);
 
             given(userRepository.findById(userId))
                     .willReturn(Optional.of(user));
@@ -248,6 +257,14 @@ public class AuthServiceTest {
 
     @Nested
     class RefreshTest {
+        // 헬퍼 메서드
+        private RefreshToken refreshStoredToken(User user, String refreshToken) {
+            return RefreshToken.builder()
+                    .user(user)
+                    .token(refreshToken)
+                    .build();
+        }
+
         @Test
         @DisplayName("토큰 재발급 성공 - 유효한 refreshToken이면 새로운 accessToken을 반환한다")
         void refresh_success_when_valid_refresh_token() {
@@ -259,10 +276,7 @@ public class AuthServiceTest {
                     .role(Role.USER)
                     .build();
 
-            RefreshToken storedToken = RefreshToken.builder()
-                    .user(user)
-                    .token(refreshToken)
-                    .build();
+            RefreshToken storedToken = refreshStoredToken(user, refreshToken);
 
             given(jwtTokenProvider.getUserId(refreshToken))
                     .willReturn(1L);
@@ -310,10 +324,7 @@ public class AuthServiceTest {
                     .id(1L)
                     .build();
 
-            RefreshToken storedToken = RefreshToken.builder()
-                    .user(user)
-                    .token(storedTokenValue)
-                    .build();
+            RefreshToken storedToken = refreshStoredToken(user, storedTokenValue);
 
             given(jwtTokenProvider.getUserId(requestToken))
                     .willReturn(1L);
