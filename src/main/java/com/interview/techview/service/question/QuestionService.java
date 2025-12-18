@@ -14,11 +14,15 @@ import com.interview.techview.repository.question.QuestionCategoryRepository;
 import com.interview.techview.repository.question.QuestionRepository;
 import com.interview.techview.repository.question.QuestionSkillRepository;
 import com.interview.techview.repository.skill.SkillRepository;
+import com.interview.techview.dto.common.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +66,15 @@ public class QuestionService {
         return QuestionResponse.from(question);
     }
 
+
+    // 모든 질문 조회 (관리자용)
+    @Transactional(readOnly = true)
+    public List<QuestionResponse> getAll() {
+        return questionRepository.findAll()
+                .stream()
+                .map(QuestionResponse::from)
+                .toList();
+    }
 
     // 질문 조회 (검색)
     @Transactional(readOnly = true)
@@ -145,6 +158,68 @@ public class QuestionService {
                 .stream()
                 .map(QuestionResponse::from)
                 .toList();
+    }
+
+    // 포지션별 질문 조회
+    @Transactional(readOnly = true)
+    public List<QuestionResponse> getQuestionsByPosition(String positionName) {
+        // 카테고리 이름으로 조회 (대소문자 무시)
+        Category category = categoryRepository.findByNameIgnoreCase(positionName)
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        // 해당 카테고리의 모든 질문 조회
+        return questionRepository.searchQuestions(category.getId(), null, null, null)
+                .stream()
+                .map(QuestionResponse::from)
+                .toList();
+    }
+
+    // 포지션별 질문 조회 (페이징)
+    @Transactional(readOnly = true)
+    public PageResponse<QuestionResponse> getQuestionsByPosition(String positionName, String difficultyOrder, Pageable pageable) {
+        // 카테고리 이름으로 조회 (대소문자 무시)
+        Category category = categoryRepository.findByNameIgnoreCase(positionName)
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+
+        // 해당 카테고리의 모든 질문 조회
+        List<Question> allQuestions = questionRepository.searchQuestions(category.getId(), null, null, null);
+        
+        // 난이도 정렬 (EASY -> MEDIUM -> HARD 순서)
+        Comparator<Question> difficultyComparator = Comparator.comparing(q -> {
+            Difficulty d = q.getDifficulty();
+            return switch (d) {
+                case EASY -> 1;
+                case MEDIUM -> 2;
+                case HARD -> 3;
+            };
+        });
+        
+        // 정렬 방향에 따라 정렬
+        if ("desc".equalsIgnoreCase(difficultyOrder)) {
+            allQuestions = allQuestions.stream()
+                    .sorted(difficultyComparator.reversed())
+                    .collect(Collectors.toList());
+        } else {
+            allQuestions = allQuestions.stream()
+                    .sorted(difficultyComparator)
+                    .collect(Collectors.toList());
+        }
+        
+        // 페이징 처리
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allQuestions.size());
+        List<Question> pagedQuestions = allQuestions.subList(start, end);
+        
+        List<QuestionResponse> content = pagedQuestions.stream()
+                .map(QuestionResponse::from)
+                .toList();
+        
+        return PageResponse.of(
+                content,
+                allQuestions.size(),
+                pageable.getPageNumber(),
+                pageable.getPageSize()
+        );
     }
 }
 
