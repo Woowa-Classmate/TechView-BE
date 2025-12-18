@@ -40,9 +40,9 @@ public class PostResponse {
         if (post == null) {
             throw new IllegalArgumentException("Post cannot be null");
         }
-        
+
         String userName = post.getUser() != null ? post.getUser().getName() : "Unknown";
-        
+
         return PostResponse.builder()
                 .postId(post.getPostId())
                 .title(post.getTitle())
@@ -55,4 +55,3 @@ public class PostResponse {
                 .build();
     }
 }
-

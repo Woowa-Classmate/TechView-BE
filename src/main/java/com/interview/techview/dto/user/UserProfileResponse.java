@@ -1,5 +1,6 @@
 package com.interview.techview.dto.user;
 
+import com.interview.techview.domain.user.Role;
 import com.interview.techview.domain.user.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -21,6 +22,9 @@ public class UserProfileResponse {
 
     @Schema(description = "사용자 이름")
     private String name;
+
+    @Schema(description = "권한", example = "USER")
+    private Role role;
 
     @Schema(description = "가입 일시")
     private LocalDateTime createdAt;
@@ -47,6 +51,7 @@ public class UserProfileResponse {
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .categories(categories)
                 .skills(skills)

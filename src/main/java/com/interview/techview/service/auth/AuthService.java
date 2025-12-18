@@ -30,6 +30,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final LoginFailureService loginFailureService;
 
     // 회원가입
     public void signUp(SignUpRequest request) {
@@ -56,23 +57,36 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.INVALID_CREDENTIAL));
 
-        // 2) 비밀번호 비교
+        // 2) 계정 잠금 상태 확인 및 자동 해제
+        checkAndUnlockAccount(user);
+
+        // 3) 계정이 잠겨있는지 확인
+        if (user.isLocked()) {
+            throw new CustomException(ErrorCode.ACCOUNT_LOCKED);
+        }
+
+        // 4) 비밀번호 비교
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            // 로그인 실패 처리
+            loginFailureService.handleLoginFailure(user);
             throw new CustomException(ErrorCode.INVALID_CREDENTIAL);
         }
 
-        // 3) Access Token 생성
+        // 5) 로그인 성공 - 실패 횟수 초기화
+        loginFailureService.handleLoginSuccess(user);
+
+        // 6) Access Token 생성
         String accessToken = jwtTokenProvider.createAccessToken(
                 user.getId(),
                 user.getRole().name()
         );
 
-        // 4) Refresh Token 생성
+        // 7) Refresh Token 생성
         String refreshToken = jwtTokenProvider.createRefreshToken(
                 user.getId()
         );
 
-        // 5) 기존 refreshToken 삭제 후 새로 저장 (RTR)
+        // 8) 기존 refreshToken 삭제 후 새로 저장 (RTR)
         refreshTokenRepository.findByUserId(user.getId())
                 .ifPresent(token -> {
                     refreshTokenRepository.delete(token);
@@ -89,8 +103,30 @@ public class AuthService {
 
         refreshTokenRepository.save(newRefresh);
 
-        // 6) 응답 반환
+        // 9) 응답 반환
         return new TokenResponse(accessToken, refreshToken);
+    }
+
+    /**
+     * 계정 잠금 상태 확인 및 자동 해제
+     * 임시 잠금의 경우 잠금 시간이 지났으면 자동으로 해제합니다.
+     */
+    private void checkAndUnlockAccount(User user) {
+        if (user.getLockLevel() == com.interview.techview.domain.user.LockLevel.NONE) {
+            return;
+        }
+
+        // 영구 잠금은 자동 해제 안 됨
+        if (user.getLockLevel() == com.interview.techview.domain.user.LockLevel.PERMANENT) {
+            return;
+        }
+
+        // 임시 잠금인 경우 시간 확인
+        if (user.getLockedUntil() != null && LocalDateTime.now().isAfter(user.getLockedUntil())) {
+            // 잠금 시간이 지났으면 자동 해제
+            user.resetFailedAttempts();
+            userRepository.save(user);
+        }
     }
 
     // 임시 비밀번호 발급
@@ -102,6 +138,10 @@ public class AuthService {
         String tempPassword = GenerateRandomPassword.generate(10);
 
         user.updatePassword(passwordEncoder.encode(tempPassword));
+        
+        // 비밀번호 재설정 시 계정 잠금 해제
+        user.resetFailedAttempts();
+        userRepository.save(user);
 
         // TODO: 이메일 전송 로직 (MailService)
         
@@ -120,6 +160,10 @@ public class AuthService {
         }
 
         user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+        
+        // 비밀번호 재설정 시 계정 잠금 해제
+        user.resetFailedAttempts();
+        userRepository.save(user);
     }
 
     // 토큰 재발급

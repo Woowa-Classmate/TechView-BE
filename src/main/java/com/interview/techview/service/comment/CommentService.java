@@ -36,17 +36,17 @@ public class CommentService {
     public CommentResponse save(CommentCreateRequest dto, Long userId) {
         Post post = postRepository.findById(dto.getPostId())
                 .orElseThrow(PostNotFoundException::new);
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        
+
         String hashedPassword = passwordEncoder.encode(dto.getPassword());
         Comment savedComment = commentRepository.save(dto.toEntity(post, user, hashedPassword));
-        
+
         // 저장 후 EntityGraph를 사용하여 user와 post를 함께 조회
         Comment comment = commentRepository.findById(savedComment.getCommentId())
                 .orElseThrow(CommentNotFoundException::new);
-        
+
         return CommentResponse.from(comment);
     }
 

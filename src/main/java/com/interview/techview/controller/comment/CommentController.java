@@ -35,8 +35,7 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommentResponse> addComment(
             @Valid @RequestBody CommentCreateRequest dto,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         CommentResponse comment = commentService.save(dto, userDetails.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(comment);
@@ -69,8 +68,7 @@ public class CommentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCommentById(
             @PathVariable Long id,
-            @Valid @RequestBody CommentPasswordRequest dto
-    ) {
+            @Valid @RequestBody CommentPasswordRequest dto) {
         commentService.delete(id, dto.getPassword());
         return ResponseEntity.ok().build();
     }
@@ -81,8 +79,7 @@ public class CommentController {
     @PutMapping("/{id}")
     public ResponseEntity<CommentResponse> updateCommentById(
             @PathVariable Long id,
-            @Valid @RequestBody CommentUpdateRequest dto
-    ) {
+            @Valid @RequestBody CommentUpdateRequest dto) {
         CommentResponse comment = commentService.update(id, dto);
         return ResponseEntity.ok(comment);
     }

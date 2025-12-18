@@ -3,7 +3,6 @@ package com.interview.techview.domain.user;
 import com.interview.techview.domain.category.Category;
 import com.interview.techview.domain.skill.Skill;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -48,18 +47,39 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserSkill> skills = new ArrayList<>();
 
+    // 계정 잠금 관련 필드
+    @Builder.Default
+    @Column(nullable = false)
+    private int failedAttempts = 0; // 로그인 실패 횟수
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil; // 계정 잠금 해제 시간
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private LockLevel lockLevel = LockLevel.NONE; // 현재 잠금 레벨
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
     // update
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
     public void updatePassword(String newPassword) {
         this.password = newPassword;
     }
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updateRole(Role role) {
+        this.role = role;
     }
 
     public void setCategories(List<Category> categories) {
@@ -70,5 +90,35 @@ public class User {
     public void setSkills(List<Skill> skills) {
         this.skills.clear();
         skills.forEach(s -> this.skills.add(new UserSkill(this, s)));
+    }
+
+    // 계정 잠금 관련 메서드
+    public void incrementFailedAttempts() {
+        this.failedAttempts++;
+    }
+
+    public void resetFailedAttempts() {
+        this.failedAttempts = 0;
+        this.lockedUntil = null;
+        this.lockLevel = LockLevel.NONE;
+    }
+
+    public void setLockedUntil(LocalDateTime lockedUntil) {
+        this.lockedUntil = lockedUntil;
+    }
+
+    public void setLockLevel(LockLevel lockLevel) {
+        this.lockLevel = lockLevel;
+    }
+
+    public boolean isLocked() {
+        if (lockLevel == LockLevel.NONE) {
+            return false;
+        }
+        if (lockLevel == LockLevel.PERMANENT) {
+            return true;
+        }
+        // 임시 잠금인 경우 시간 확인
+        return lockedUntil != null && LocalDateTime.now().isBefore(lockedUntil);
     }
 }

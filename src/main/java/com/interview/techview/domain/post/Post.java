@@ -41,6 +41,10 @@ public class Post {
     @Column(name = "view_count", nullable = false)
     private int viewCount = 0; // 기본 조회수는 0개
 
+    @Builder.Default
+    @Column(name = "is_notice", nullable = false)
+    private boolean isNotice = false; // 공지사항 여부 (기본값: false)
+
     @Column(name = "password", nullable = false)
     private String password;
 

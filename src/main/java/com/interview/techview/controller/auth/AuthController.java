@@ -11,7 +11,6 @@ import com.interview.techview.swagger.AuthApi;
 import com.interview.techview.swagger.PublicApi;
 import com.interview.techview.util.CookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,10 +46,12 @@ public class AuthController {
 
     // 로그인
     @Operation(
-            summary = "로그인",
+            summary = "로그인 (일반 사용자 & 관리자 통합)",
             description = """
-                로그인 후 Access Token을 반환합니다.
-                Refresh Token은 HttpOnly Cookie로 저장됩니다.
+                일반 사용자와 관리자 모두 이 API를 사용하여 로그인합니다.
+                로그인 후 Access Token을 반환하며, Refresh Token은 HttpOnly Cookie로 저장됩니다.
+                JWT에 포함된 role 정보(USER/ADMIN)에 따라 자동으로 권한이 구분됩니다.
+                관리자 계정으로 로그인 시 /api/admin/** 경로에 접근할 수 있습니다.
             """
     )
     @PublicApi
@@ -65,6 +66,7 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new TokenResponse(tokens.getAccessToken(), null));
     }
+
 
     // 임시 비밀번호 발급
     @Operation(

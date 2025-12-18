@@ -6,6 +6,7 @@ import com.interview.techview.dto.post.PostListResponse;
 import com.interview.techview.dto.post.PostPasswordRequest;
 import com.interview.techview.dto.post.PostResponse;
 import com.interview.techview.dto.post.PostUpdateRequest;
+import com.interview.techview.dto.common.PageResponse;
 import com.interview.techview.security.CustomUserDetails;
 import com.interview.techview.service.post.PostService;
 import com.interview.techview.swagger.AuthApi;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,16 +44,23 @@ public class PostController {
                                 .body(post);
         }
 
-        // 게시글 목록 조회 API
-        @Operation(summary = "게시글 목록 조회", description = "모든 게시글 목록을 조회합니다.")
+        // 게시글 목록 조회 API (페이징)
+        @Operation(summary = "게시글 목록 조회", description = "게시글 목록을 페이징하여 조회합니다. 기본 페이지 크기는 10입니다.")
         @PublicApi
         @GetMapping
-        public ResponseEntity<List<PostListResponse>> getAllPosts() {
-                List<PostListResponse> postListDto = postService.findAll()
+        public ResponseEntity<PageResponse<PostListResponse>> getAllPosts(
+                        @PageableDefault(size = 10, sort = "createAt") Pageable pageable) {
+                PageResponse<Post> page = postService.findAll(pageable);
+                List<PostListResponse> content = page.getContent()
                                 .stream()
                                 .map(PostListResponse::from)
                                 .toList();
-                return ResponseEntity.ok(postListDto);
+                PageResponse<PostListResponse> response = PageResponse.of(
+                                content,
+                                page.getTotalElements(),
+                                page.getCurrentPage(),
+                                page.getSize());
+                return ResponseEntity.ok(response);
         }
 
         // 게시글 단건 조회 API

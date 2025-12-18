@@ -1,5 +1,7 @@
 package com.interview.techview.config;
 
+import com.interview.techview.security.CustomAccessDeniedHandler;
+import com.interview.techview.security.CustomAuthenticationEntryPoint;
 import com.interview.techview.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Value("${front.domain}")
     private String frontDomain;
@@ -31,16 +35,17 @@ public class SecurityConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable) // HTTP Basic 인증 비활성화
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration configuration = new CorsConfiguration();
                     // 개발 환경: 여러 포트 허용
                     configuration.setAllowedOrigins(List.of(
                             frontDomain,
                             "http://localhost",
-                            "http://localhost:3000",
+                            "http://localhost:3001",
                             "http://localhost:5173",
                             "http://127.0.0.1",
-                            "http://127.0.0.1:3000",
+                            "http://127.0.0.1:3001",
                             "http://127.0.0.1:5173"));
                     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
                     configuration.setAllowedHeaders(List.of("*"));
@@ -49,12 +54,16 @@ public class SecurityConfig {
                     return configuration;
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint) // 401 처리
+                        .accessDeniedHandler(accessDeniedHandler)) // 403 처리
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll() // 게시글 조회는 누구나 접근 가능
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll() // 댓글 조회는 누구나 접근 가능
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger 허용
                         .requestMatchers("/error", "/api/auth/signup", "/api/auth/login", "/api/auth/refresh")
                         .permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 관리자 권한 필요
                         .anyRequest().authenticated())
                 // JWT 기반 인증 필터 추가
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
