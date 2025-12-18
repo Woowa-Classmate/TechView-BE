@@ -9,10 +9,10 @@ import java.util.Optional;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @EntityGraph(attributePaths = {"user", "post"})
+    @EntityGraph(attributePaths = { "user", "post" })
     List<Comment> findByPost_PostId(Long postId);
 
-    @EntityGraph(attributePaths = {"user", "post"})
+    @EntityGraph(attributePaths = { "user", "post" })
     @Override
     Optional<Comment> findById(Long id);
 }

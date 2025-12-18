@@ -118,4 +118,5 @@ public class UserController {
                 userService.getSkills(user.getId())
         );
     }
+
 }

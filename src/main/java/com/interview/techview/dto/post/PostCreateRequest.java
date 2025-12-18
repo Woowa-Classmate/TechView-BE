@@ -29,12 +29,16 @@ public class PostCreateRequest {
     @Size(min = 6, max = 20, message = "비밀번호는 6자 이상 20자 이하로 작성해주세요.")
     private String password;
 
+    @Schema(description = "공지사항 여부", example = "false")
+    private Boolean isNotice = false;
+
     public Post toEntity(User user, String hashedPassword) {
         return Post.builder()
                 .title(title)
                 .content(content)
                 .user(user)
                 .password(hashedPassword)
+                .isNotice(isNotice != null ? isNotice : false)
                 .build();
     }
 }

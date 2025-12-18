@@ -27,8 +27,7 @@ public class PostBookmarkController {
     @PostMapping("/{postId}")
     public ResponseEntity<Void> toggleBookmark(
             @PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         postBookmarkService.toggleBookmark(postId, userDetails.getId());
         return ResponseEntity.ok().build();
     }
@@ -38,8 +37,7 @@ public class PostBookmarkController {
     @AuthApi
     @GetMapping
     public ResponseEntity<List<PostListResponse>> getBookmarks(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<PostListResponse> bookmarks = postBookmarkService.getBookmarks(userDetails.getId());
         return ResponseEntity.ok(bookmarks);
     }
@@ -50,8 +48,7 @@ public class PostBookmarkController {
     @GetMapping("/{postId}/check")
     public ResponseEntity<Boolean> isBookmarked(
             @PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         boolean isBookmarked = postBookmarkService.isBookmarked(postId, userDetails.getId());
         return ResponseEntity.ok(isBookmarked);
     }
